@@ -1,6 +1,6 @@
 PODS:
   - SocketRocket (0.5.1)
-  - StompClientLib (1.4.1):
+  - StompClientLib (1.4.2):
     - SocketRocket
 
 DEPENDENCIES:
@@ -17,7 +17,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   SocketRocket: d57c7159b83c3c6655745cd15302aa24b6bae531
-  StompClientLib: ac40390e9660c574675f1c933bec81c8e2811a4f
+  StompClientLib: d5428774da980d9986ba04a72a280f91b395aa3a
 
 PODFILE CHECKSUM: 041dbf70477e29e5853301f68d1ca262d5946f6a
 

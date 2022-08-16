@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'StompClientLib'
-  s.version          = '1.4.1'
+  s.version          = '1.4.2'
   s.summary          = 'Simple STOMP Client library. Swift 3, 4, 4.2, 5 compatible. Objective-C Run-time compatibility'
   s.swift_version = '4.0', '4.2', '5.0'
 
@@ -29,7 +29,7 @@ Simple STOMP Client library, Swift 3, 4, 4.2, 5 compatible. STOMP Protocol let t
   s.source           = { :git => 'https://github.com/wrathchaos/StompClientLib.git', :tag => s.version.to_s }
   s.social_media_url = 'https://twitter.com/freakycodercom'
 
-  s.ios.deployment_target = '9.0'
+  s.ios.deployment_target = '10.0'
 
   s.source_files = 'StompClientLib/Classes/**/*'
   
