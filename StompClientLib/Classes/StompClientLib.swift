@@ -61,7 +61,7 @@ public enum StompAckMode {
 
 // Fundamental Protocols
 @objc
-public protocol StompClientLibDelegate: class {
+public protocol StompClientLibDelegate: AnyObject {
     func stompClient(client: StompClientLib!, didReceiveMessageWithJSONBody jsonBody: AnyObject?, akaStringBody stringBody: String?, withHeader header:[String:String]?, withDestination destination: String)
     
     func stompClientDidDisconnect(client: StompClientLib!)
@@ -82,6 +82,9 @@ public class StompClientLib: NSObject, SRWebSocketDelegate {
     private var urlRequest: NSURLRequest?
     
     private var reconnectTimer : Timer?
+    private var pingTimer: Timer?
+    
+    public var pingInterval: TimeInterval = 10
     
     public func sendJSONForDict(dict: AnyObject, toDestination destination: String) {
         do {
@@ -198,21 +201,36 @@ public class StompClientLib: NSObject, SRWebSocketDelegate {
     
     public func webSocketDidOpen(_ webSocket: SRWebSocket!) {
         print("WebSocket is connected")
+        /// Set Ping Timer
+        pingTimer?.invalidate()
+        pingTimer = Timer.scheduledTimer(timeInterval: pingInterval,
+                                         target: self,
+                                         selector: #selector(ping),
+                                         userInfo: nil,
+                                         repeats: true)
+        
         connect()
     }
     
     public func webSocket(_ webSocket: SRWebSocket!, didFailWithError error: Error!) {
         print("didFailWithError: \(String(describing: error))")
         
+        pingTimer?.invalidate()
+        
         if let delegate = delegate {
             DispatchQueue.main.async(execute: {
-                delegate.serverDidSendError(client: self, withErrorMessage: error.localizedDescription, detailedErrorMessage: error as? String)
+                delegate.serverDidSendError(client: self,
+                                            withErrorMessage: error.localizedDescription,
+                                            detailedErrorMessage: error.localizedDescription)
             })
         }
     }
     
     public func webSocket(_ webSocket: SRWebSocket!, didCloseWithCode code: Int, reason: String!, wasClean: Bool) {
         print("didCloseWithCode \(code), reason: \(String(describing: reason))")
+        
+        pingTimer?.invalidate()
+        
         if let delegate = delegate {
             DispatchQueue.main.async(execute: {
                 delegate.stompClientDidDisconnect(client: self)
@@ -222,6 +240,18 @@ public class StompClientLib: NSObject, SRWebSocketDelegate {
     
     public func webSocket(_ webSocket: SRWebSocket!, didReceivePong pongPayload: Data!) {
         print("didReceivePong")
+    }
+    
+    @objc private func ping() {
+        if socket?.readyState == .OPEN {
+            socket?.send(StompCommands.commandPing)
+        }
+        
+        if let delegate = delegate {
+            DispatchQueue.main.async(execute: {
+                delegate.serverDidSendPing()
+            })
+        }
     }
     
     private func sendFrame(command: String?, header: [String: String]?, body: AnyObject?) {
@@ -448,6 +478,7 @@ public class StompClientLib: NSObject, SRWebSocketDelegate {
      */
     public func disconnect() {
         connection = false
+        pingTimer?.invalidate()
         var headerToSend = [String: String]()
         headerToSend[StompCommands.commandDisconnect] = String(Int(NSDate().timeIntervalSince1970))
         sendFrame(command: StompCommands.commandDisconnect, header: headerToSend, body: nil)
