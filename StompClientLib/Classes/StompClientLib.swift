@@ -84,6 +84,8 @@ public class StompClientLib: NSObject, SRWebSocketDelegate {
     private var reconnectTimer : Timer?
     private var pingTimer: Timer?
     
+    public var pingInterval: TimeInterval = 10
+    
     public func sendJSONForDict(dict: AnyObject, toDestination destination: String) {
         do {
             let theJSONData = try JSONSerialization.data(withJSONObject: dict, options: JSONSerialization.WritingOptions())
@@ -201,7 +203,11 @@ public class StompClientLib: NSObject, SRWebSocketDelegate {
         print("WebSocket is connected")
         /// Set Ping Timer
         pingTimer?.invalidate()
-        pingTimer = Timer(timeInterval: 10, target: self, selector: #selector(ping), userInfo: nil, repeats: true)
+        pingTimer = Timer.scheduledTimer(timeInterval: pingInterval,
+                                         target: self,
+                                         selector: #selector(ping),
+                                         userInfo: nil,
+                                         repeats: true)
         
         connect()
     }
@@ -237,7 +243,9 @@ public class StompClientLib: NSObject, SRWebSocketDelegate {
     }
     
     @objc private func ping() {
-        socket?.send(StompCommands.commandPing)
+        if socket?.readyState == .OPEN {
+            socket?.send(StompCommands.commandPing)
+        }
         
         if let delegate = delegate {
             DispatchQueue.main.async(execute: {
