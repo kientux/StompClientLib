@@ -73,7 +73,7 @@ class ViewController: UIViewController, StompClientLibDelegate {
         let baseURL = "http://localhost:8080/"
         // Cut the first 7 character which are "http://" Not necessary!!!
         // substring is depracated in iOS 11, use prefix instead :)
-        let wsURL = baseURL.substring(from:baseURL.index(baseURL.startIndex, offsetBy: 7))
+        let wsURL = baseURL.dropFirst(7)
         let completedWSURL = "ws://\(wsURL)hello/websocket"
         
         
